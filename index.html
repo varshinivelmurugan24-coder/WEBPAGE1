@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple JS Calculator by Varshini</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f4f4f9;
+      }
+
+      .calculator {
+        background-color: #333;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        width: 300px; /* Fixed width for better grid layout */
+      }
+
+      .display {
+        background-color: #222;
+        color: white;
+        padding: 15px;
+        text-align: right;
+        font-size: 2.5em;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        overflow-x: auto; /* Handle long numbers */
+        height: 50px;
+      }
+
+      .buttons-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      button {
+        padding: 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.2em;
+        cursor: pointer;
+        transition: background-color 0.1s;
+      }
+
+      /* Number and Decimal buttons */
+      .number,
+      .decimal {
+        background-color: #555;
+        color: white;
+      }
+
+      /* Operator buttons */
+      .operator {
+        background-color: #ff9500; /* Orange for operations */
+        color: white;
+      }
+
+      /* Equals button */
+      .equals {
+        background-color: #007bff; /* Blue for equals */
+        color: white;
+      }
+
+      /* Clear button */
+      .clear {
+        background-color: #ccc;
+        color: #333;
+      }
+
+      button:hover {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calculator">
+      <div class="display" id="display">0</div>
+
+      <div class="buttons-grid">
+        <button class="clear">AC</button>
+        <button class="operator" value="%">&divide;</button>
+        <button class="operator" value="*">&times;</button>
+        <button class="operator" value="/">&plusmn;</button>
+        <button class="number" value="7">7</button>
+        <button class="number" value="8">8</button>
+        <button class="number" value="9">9</button>
+        <button class="operator" value="-">-</button>
+
+        <button class="number" value="4">4</button>
+        <button class="number" value="5">5</button>
+        <button class="number" value="6">6</button>
+        <button class="operator" value="+">+</button>
+
+        <button class="number" value="1">1</button>
+        <button class="number" value="2">2</button>
+        <button class="number" value="3">3</button>
+        <button class="equals" value="=">=</button>
+
+        <button class="number" value="0" style="grid-column: span 2">0</button>
+        <button class="decimal" value=".">.</button>
+        <button class="operator" value="/">/</button>
+      </div>
+    </div>
+
+    <script>
+      const display = document.getElementById("display");
+      const buttons = document.querySelectorAll("button");
+
+      // State Management Variables (Crucial for calculator logic)
+      let currentInput = "0";
+      let previousInput = null;
+      let operator = null;
+      let waitingForSecondOperand = false;
+
+      function updateDisplay() {
+        display.textContent = currentInput;
+      }
+
+      function clearCalculator() {
+        currentInput = "0";
+        previousInput = null;
+        operator = null;
+        waitingForSecondOperand = false;
+        updateDisplay();
+      }
+
+      function inputDigit(digit) {
+        if (waitingForSecondOperand === true) {
+          currentInput = digit;
+          waitingForSecondOperand = false;
+        } else {
+          currentInput = currentInput === "0" ? digit : currentInput + digit;
+        }
+        updateDisplay();
+      }
+
+      function inputDecimal(dot) {
+        // Ensure only one decimal point is added
+        if (waitingForSecondOperand === true) return;
+
+        if (!currentInput.includes(dot)) {
+          currentInput += dot;
+        }
+        updateDisplay();
+      }
+
+      function handleOperator(nextOperator) {
+        const inputValue = parseFloat(currentInput);
+
+        if (operator && waitingForSecondOperand) {
+          operator = nextOperator;
+          return;
+        }
+
+        if (previousInput === null) {
+          previousInput = inputValue;
+        } else if (operator) {
+          const result = performCalculation[operator](
+            previousInput,
+            inputValue
+          );
+          currentInput = String(result);
+          previousInput = result;
+        }
+
+        waitingForSecondOperand = true;
+        operator = nextOperator;
+        updateDisplay();
+      }
+
+      // Complex Event Handling: The calculation logic
+      const performCalculation = {
+        "/": (firstOperand, secondOperand) => firstOperand / secondOperand,
+        "*": (firstOperand, secondOperand) => firstOperand * secondOperand,
+        "+": (firstOperand, secondOperand) => firstOperand + secondOperand,
+        "-": (firstOperand, secondOperand) => firstOperand - secondOperand,
+        // The equals button triggers calculation but doesn't store a new operator
+        "=": (firstOperand, secondOperand) => secondOperand,
+      };
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const { target } = event;
+
+          if (target.classList.contains("clear")) {
+            clearCalculator();
+            return;
+          }
+          if (target.classList.contains("number")) {
+            inputDigit(target.value);
+            return;
+          }
+
+          if (target.classList.contains("decimal")) {
+            inputDecimal(target.value);
+            return;
+          }
+
+          if (
+            target.classList.contains("operator") ||
+            target.classList.contains("equals")
+          ) {
+            handleOperator(target.value);
+            return;
+          }
+        });
+      });
+
+      // Initialize the display
+      clearCalculator();
+    </script>
+  </body>
+</html>
